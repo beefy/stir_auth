@@ -14,10 +14,10 @@ const PORT = process.env.PORT || 3001;
 const getAllowedOrigins = (): string[] => {
   if (process.env.NODE_ENV === 'production') {
     return [
-      process.env.CLIENT_URL || 'https://organicfreshcoffee.com',
-      'https://organicfreshcoffee.com',
-      'https://api.organicfreshcoffee.com',
-      'https://server.organicfreshcoffee.com',
+      process.env.CLIENT_URL || 'https://stirdotcom.net',
+      'https://stirdotcom.net',
+      'https://api.stirdotcom.net',
+      'https://server.stirdotcom.net',
       'http://localhost:3000',
       'http://localhost:3001',
       'http://localhost:3002',
@@ -27,10 +27,10 @@ const getAllowedOrigins = (): string[] => {
     ];
   } else if (process.env.NODE_ENV === 'staging') {
     const stagingOrigins = [
-      process.env.CLIENT_URL || 'https://staging.organicfreshcoffee.com',
-      'https://staging.organicfreshcoffee.com',
-      'https://staging-api.organicfreshcoffee.com',
-      'https://staging-server.organicfreshcoffee.com',
+      process.env.CLIENT_URL || 'https://staging.stirdotcom.net',
+      'https://staging.stirdotcom.net',
+      'https://staging-api.stirdotcom.net',
+      'https://staging-server.stirdotcom.net',
       'http://localhost:3000',
       'http://localhost:3001',
       'http://localhost:3002',
