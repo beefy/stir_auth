@@ -15,15 +15,15 @@ NC='\033[0m' # No Color
 # Configuration
 PROJECT_ID=""
 REGION="us-central1"
-AUTH_SERVICE_NAME="organicfreshcoffee-auth-server"
+AUTH_SERVICE_NAME="stir-auth-server"
 SERVICE_ACCOUNT_NAME="github-actions-sa"
-REPOSITORY_NAME="organicfreshcoffee-auth-server"
+REPOSITORY_NAME="stir-auth-server"
 
 if [ "$1" = "staging" ] || [ "$1" = "--staging" ]; then
     echo -e "${BLUE}Setting up STAGING environment${NC}"
-    AUTH_SERVICE_NAME="organicfreshcoffee-auth-server-staging"
+    AUTH_SERVICE_NAME="stir-auth-server-staging"
     SERVICE_ACCOUNT_NAME="github-actions-staging-sa"
-    REPOSITORY_NAME="organicfreshcoffee-auth-server-staging"
+    REPOSITORY_NAME="stir-auth-server-staging"
 fi
 
 print_header() {
@@ -173,7 +173,7 @@ setup_workload_identity() {
             --workload-identity-pool="github-actions-pool" \
             --display-name="GitHub Actions Provider" \
             --attribute-mapping="google.subject=assertion.sub,attribute.actor=assertion.actor,attribute.repository=assertion.repository,attribute.repository_owner=assertion.repository_owner" \
-            --attribute-condition="assertion.repository_owner == 'organicfreshcoffee'" \
+            --attribute-condition="assertion.repository_owner == 'stir'" \
             --issuer-uri="https://token.actions.githubusercontent.com"
         print_info "Workload identity provider created!"
     fi
@@ -185,7 +185,7 @@ setup_workload_identity() {
     gcloud iam service-accounts add-iam-policy-binding \
         "${SERVICE_ACCOUNT_NAME}@${PROJECT_ID}.iam.gserviceaccount.com" \
         --role="roles/iam.workloadIdentityUser" \
-        --member="principalSet://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/github-actions-pool/attribute.repository/organicfreshcoffee/landing"
+        --member="principalSet://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/github-actions-pool/attribute.repository/stir/landing"
     
     print_info "Workload Identity Federation configured!"
 }
@@ -210,7 +210,7 @@ print_summary() {
     echo "1. Add the secrets above to your GitHub repository"
     # No MongoDB setup required for auth microservice
     echo "3. Push to main branch to trigger deployment"
-    echo "4. After deployment, run ./scripts/setup-domain.sh to configure auth.organicfreshcoffee.com"
+    echo "4. After deployment, run ./scripts/setup-domain.sh to configure auth.stir.com"
     echo "5. Check the Actions tab in GitHub to monitor the deployment"
     echo ""
     echo -e "${YELLOW}For staging environment:${NC}"
