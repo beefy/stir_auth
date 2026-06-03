@@ -99,7 +99,7 @@ jobs:
           --max-instances 10 \
           --concurrency 1000 \
           --timeout 3600 \
-          --set-env-vars NODE_ENV=production,GOOGLE_CLOUD_PROJECT=${{ env.PROJECT_ID }}
+          --set-env-vars NODE_ENV=production,GOOGLE_CLOUD_PROJECT=${{ env.PROJECT_ID }},CORS_ORIGIN=https://auth.stirdotcom.net
 
     - name: Get Cloud Run URL (Production)
       run: |

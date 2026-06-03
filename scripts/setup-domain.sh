@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Custom Domain Setup Script for Cloud Run
-# This script helps set up a custom domain for your Cloud Run service
+# This script helps set up a custom domain for your auth microservice
 
 set -e
 
@@ -15,13 +15,13 @@ NC='\033[0m' # No Color
 # Configuration
 PROJECT_ID=""
 REGION="us-central1"
-AUTH_SERVICE_NAME="organicfreshcoffee-auth-server"
-MAIN_DOMAIN="auth.organicfreshcoffee.com"
-STAGING_DOMAIN="staging-auth.organicfreshcoffee.com"
+AUTH_SERVICE_NAME="stir-auth-server"
+MAIN_DOMAIN="auth.stirdotcom.net"
+STAGING_DOMAIN="staging-auth.stirdotcom.net"
 
 if [ "$1" = "staging" ] || [ "$1" = "--staging" ]; then
     echo -e "${BLUE}Setting up STAGING environment${NC}"
-    AUTH_SERVICE_NAME="organicfreshcoffee-auth-server-staging"
+    AUTH_SERVICE_NAME="stir-auth-server-staging"
     MAIN_DOMAIN="$STAGING_DOMAIN"
 fi
 
@@ -114,22 +114,12 @@ verify_service_exists() {
 verify_domain_ownership() {
     print_step "Checking domain ownership..."
     
-    if [ "$1" = "staging" ] || [ "$1" = "--staging" ]; then
-        print_info "Make sure you own the staging domain: $STAGING_DOMAIN"
-        read -p "Do you have DNS control for $STAGING_DOMAIN? (y/n): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            print_error "You must have DNS control for the staging domain to continue"
-            exit 1
-        fi
-    else
-        print_info "Make sure you own the domain '$MAIN_DOMAIN'"
-        read -p "Do you own the domain '$MAIN_DOMAIN'? (y/n): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            print_error "You must own the domain to continue"
-            exit 1
-        fi
+    print_info "Make sure you own the domain '$MAIN_DOMAIN'"
+    read -p "Do you own the domain '$MAIN_DOMAIN'? (y/n): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        print_error "You must own the domain to continue"
+        exit 1
     fi
 }
 
@@ -155,7 +145,7 @@ get_dns_records() {
     print_info "Fetching required DNS records for auth domain..."
     
     echo ""
-    echo -e "${YELLOW}DNS Records to configure:${NC}"
+    echo -e "${YELLOW}DNS Records to configure in Google Domains:${NC}"
     echo "========================="
     
     # Get DNS records for main domain
@@ -182,43 +172,37 @@ get_dns_records() {
 }
 
 configure_google_domains() {
-    print_step "Instructions for configuring DNS..."
+    print_step "Instructions for configuring DNS in Google Domains..."
     
     echo ""
-    if [[ "$MAIN_DOMAIN" == *"staging"* ]]; then
-        echo -e "${YELLOW}To configure DNS for STAGING domain:${NC}"
-        echo "===================================="
-        echo "1. Go to your DNS provider (Google Domains, Cloudflare, etc.)"
-        echo "2. Find your domain '$STAGING_DOMAIN'"
-        echo "3. Go to DNS management"
-        echo "4. Add the DNS records shown above for $STAGING_DOMAIN"
-        echo "5. Set TTL to 300 seconds for faster propagation during testing"
-        echo "6. Save the changes"
-        echo ""
-        echo -e "${BLUE}Note:${NC} This is the STAGING domain for your auth microservice"
-    else
-        echo -e "${YELLOW}To configure DNS in Google Domains:${NC}"
-        echo "===================================="
-        echo "1. Go to https://domains.google.com"
-        echo "2. Find your domain '$MAIN_DOMAIN'"
-        echo "3. Click on it and go to 'DNS' tab"
-        echo "4. Scroll down to 'Custom records'"
-        echo "5. Add the DNS records shown above for $MAIN_DOMAIN"
-        echo "6. Set TTL to 300 seconds for faster propagation during testing"
-        echo "7. Save the changes"
-        echo ""
-        echo -e "${BLUE}Note:${NC} This is the PRODUCTION domain for your auth microservice"
-    fi
-    echo -e "${BLUE}DNS propagation info:${NC} Can take up to 48 hours, but usually takes 5-10 minutes"
-    echo -e "${BLUE}Tip:${NC} You can use 'dig organicfreshcoffee.com' to check DNS propagation"
+    echo -e "${YELLOW}To configure DNS in Google Domains:${NC}"
+    echo "===================================="
+    echo "1. Go to https://domains.google.com"
+    echo "2. Find your domain 'stirdotcom.net'"
+    echo "3. Click on it and go to 'DNS' tab"
+    echo "4. Scroll down to 'Custom records'"
+    echo "5. Add the DNS records shown above for $MAIN_DOMAIN"
     echo ""
-    echo -e "${YELLOW}About the A records for the root domain:${NC}"
-    echo "========================================"
-    echo "• These are Google's stable Cloud Run ingress IP addresses"
-    echo "• They rarely change, but Google will notify if they do"
-    echo "• This is the standard approach for root domains with Cloud Run"
-    echo "• Millions of sites use this same setup successfully"
-    echo "• Alternative: Use Cloudflare (free) for CNAME flattening if you prefer"
+    echo -e "${BLUE}Important:${NC} Since $MAIN_DOMAIN is a subdomain of stirdotcom.net,"
+    echo "you need to add records to the stirdotcom.net DNS zone."
+    echo "The 'Name' field should be 'auth' (not the full domain)."
+    echo ""
+    echo "For example, if the record says:"
+    echo "  Name: auth.stirdotcom.net"
+    echo "  Type: A"
+    echo "  Value: 123.456.789.0"
+    echo ""
+    echo "In Google Domains, enter:"
+    echo "  Name: auth"
+    echo "  Type: A"
+    echo "  Value: 123.456.789.0"
+    echo "  TTL: 300"
+    echo ""
+    echo "6. Set TTL to 300 seconds for faster propagation"
+    echo "7. Click Save"
+    echo ""
+    echo -e "${BLUE}DNS propagation info:${NC} Can take up to 48 hours, but usually 5-10 minutes"
+    echo -e "${BLUE}Tip:${NC} Use 'dig $MAIN_DOMAIN' to check DNS propagation"
 }
 
 test_domain_setup() {
@@ -226,8 +210,9 @@ test_domain_setup() {
     
     echo ""
     print_info "Once DNS propagation is complete, test your setup:"
-    echo "1. Auth service: https://$MAIN_DOMAIN/health"
-    echo "2. API endpoints: https://$MAIN_DOMAIN/api/..."
+    echo "1. Health check: https://$MAIN_DOMAIN/health"
+    echo "2. Firebase config: https://$MAIN_DOMAIN/api/firebase-config"
+    echo "3. Token verify: https://$MAIN_DOMAIN/api/verify"
     echo ""
     print_info "You can check DNS propagation with:"
     echo "nslookup $MAIN_DOMAIN"
@@ -237,13 +222,7 @@ test_domain_setup() {
 update_cors_configuration() {
     print_step "CORS configuration update..."
     
-    if [[ "$MAIN_DOMAIN" == *"staging"* ]]; then
-        print_info "✅ CORS is automatically configured for staging domain: $STAGING_DOMAIN"
-        print_info "  - Cloud Run URLs (as fallback)"
-    else
-        print_info "✅ CORS is automatically configured for production domain: $MAIN_DOMAIN"
-    fi
-    
+    print_info "✅ CORS is automatically configured for domain: $MAIN_DOMAIN"
     print_info "The server will log allowed origins on startup for verification."
 }
 
@@ -253,19 +232,20 @@ print_next_steps() {
     echo ""
     echo -e "${GREEN}Summary:${NC}"
     echo "========"
-    echo "✅ Domain mapping created for: $MAIN_DOMAIN (auth service)"
+    echo "✅ Domain mapping created for: $MAIN_DOMAIN"
     echo "✅ DNS records retrieved"
     echo "✅ Configuration instructions provided"
     echo ""
     echo -e "${YELLOW}What you need to do next:${NC}"
     echo "========================="
-    echo "1. Configure DNS records in Google Domains (instructions above)"
-    echo "2. Wait for DNS propagation (5-10 minutes usually)"
-    echo "3. Test the domain:"
-    echo "   - Auth Service Health: https://$MAIN_DOMAIN/health"
-    echo "   - API: https://$MAIN_DOMAIN/api/..."
-    echo "4. Update your GitHub secrets if needed"
-    echo "5. Redeploy after updating configuration"
+    echo "1. Go to https://domains.google.com"
+    echo "2. Click on 'stirdotcom.net'"
+    echo "3. Go to the 'DNS' tab"
+    echo "4. Under 'Custom records', add the records shown above"
+    echo "5. Wait for DNS propagation (5-10 minutes usually)"
+    echo "6. Test the domain:"
+    echo "   - Health Check: https://$MAIN_DOMAIN/health"
+    echo "   - Firebase Config: https://$MAIN_DOMAIN/api/firebase-config"
     echo ""
     echo -e "${BLUE}Useful commands:${NC}"
     echo "================"
@@ -279,7 +259,7 @@ print_next_steps() {
     echo "curl -I https://$MAIN_DOMAIN/health"
     echo ""
     echo -e "${GREEN}🎉 Your auth service will be available at:${NC}"
-    echo -e "${GREEN}   Auth: https://$MAIN_DOMAIN${NC}"
+    echo -e "${GREEN}   https://$MAIN_DOMAIN${NC}"
 }
 
 # Main execution

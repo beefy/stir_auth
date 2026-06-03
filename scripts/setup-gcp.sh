@@ -210,7 +210,7 @@ print_summary() {
     echo "1. Add the secrets above to your GitHub repository"
     # No MongoDB setup required for auth microservice
     echo "3. Push to main branch to trigger deployment"
-    echo "4. After deployment, run ./scripts/setup-domain.sh to configure auth.stir.com"
+    echo "4. After deployment, run ./scripts/setup-domain.sh to configure auth.stirdotcom.net"
     echo "5. Check the Actions tab in GitHub to monitor the deployment"
     echo ""
     echo -e "${YELLOW}For staging environment:${NC}"
