@@ -173,7 +173,7 @@ setup_workload_identity() {
             --workload-identity-pool="github-actions-pool" \
             --display-name="GitHub Actions Provider" \
             --attribute-mapping="google.subject=assertion.sub,attribute.actor=assertion.actor,attribute.repository=assertion.repository,attribute.repository_owner=assertion.repository_owner" \
-            --attribute-condition="assertion.repository_owner == 'stir'" \
+            --attribute-condition="assertion.repository_owner == 'beefy'" \
             --issuer-uri="https://token.actions.githubusercontent.com"
         print_info "Workload identity provider created!"
     fi
@@ -185,7 +185,7 @@ setup_workload_identity() {
     gcloud iam service-accounts add-iam-policy-binding \
         "${SERVICE_ACCOUNT_NAME}@${PROJECT_ID}.iam.gserviceaccount.com" \
         --role="roles/iam.workloadIdentityUser" \
-        --member="principalSet://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/github-actions-pool/attribute.repository/stir/landing"
+        --member="principalSet://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/github-actions-pool/attribute.repository/beefy/stir_auth"
     
     print_info "Workload Identity Federation configured!"
 }
